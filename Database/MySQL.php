@@ -1,4 +1,4 @@
-<?php namespace DB;
+<?php namespace Database;
 
 /*******************************************/
 /*** Author: Frederic Depuydt            ***/
@@ -139,6 +139,7 @@ class MySQL {
             return $result;
         }
     }
+
     // Query the database
     // @param $query The query string
     // @return mixed The result of the mysqli::query() function
@@ -335,11 +336,3 @@ class MySQL {
         return "'" . $this->connection->real_escape_string($value) . "'";
     }
 }
-
-class MySQLException extends \Exception{
-    const ER_TOO_MANY_FIELDS = 1117;
-    const ER_TOO_MANY_ROWS = 1172;
-    const ER_TOO_FEW_FIELDS = 3117; // Custom created errno
-    const ER_TOO_FEW_ROWS = 3172; // Custom created errno
-    const ER_DUP_ENTRY = 1062;
-};

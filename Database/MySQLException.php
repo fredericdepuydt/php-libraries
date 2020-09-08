@@ -1,4 +1,4 @@
-<?php namespace DB;
+<?php namespace Database;
 
 /*******************************************/
 /*** Author: Frederic Depuydt            ***/
@@ -11,4 +11,4 @@ class MySQLException extends \Exception{
     const ER_TOO_FEW_FIELDS = 3117; // Custom created errno
     const ER_TOO_FEW_ROWS = 3172; // Custom created errno
     const ER_DUP_ENTRY = 1062;
-};
+}
