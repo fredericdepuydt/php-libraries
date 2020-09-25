@@ -17,7 +17,7 @@ class BNPParibasFortis extends Base {
         parent::__construct();
         $this->row = $_row;
         $this->info = array();
-        
+
         if(count($this->row) == 1 && $this->row[0] == ""){
             throw new \UnderflowException("Empty transaction");
         }
@@ -56,7 +56,7 @@ class BNPParibasFortis extends Base {
         $_str = str_replace("\\\"","\"",$_str);
         return "\"" . $_str . "\"";
     }
-    
+
     function log2file($_handler){
         fwrite($_handler, $this->date . ",");
         fwrite($_handler, str_replace(",",".",$this->amount) . ",");
@@ -65,14 +65,14 @@ class BNPParibasFortis extends Base {
         fwrite($_handler, str_replace(",",".",$this->src_account->bic) . ",");
         fwrite($_handler, $this->quote($this->dst_account->name).",");
         fwrite($_handler, str_replace(",",".",$this->dst_account->iban) . ",");
-        fwrite($_handler, str_replace(",",".",$this->dst_account->bic) . ","); 
+        fwrite($_handler, str_replace(",",".",$this->dst_account->bic) . ",");
         fwrite($_handler, str_replace(",",".",$this->dst_account->notes) . ",");
         fwrite($_handler, $this->quote($this->description).",");
         fwrite($_handler, $this->quote($this->notes).",");
         fwrite($_handler, str_replace(",",".",$this->row[5]) . ",");
-        fwrite($_handler, str_replace(",",".",$this->row[6]) . ",");     
+        fwrite($_handler, str_replace(",",".",$this->row[6]) . ",");
         fwrite($_handler, str_replace(",",".",$this->row[7]) . ",");
-        if(is_array($this->info)){                
+        if(is_array($this->info)){
             $tegenpartij = str_replace(",",".",(array_key_exists('tegenpartij',$this->info)?$this->info['tegenpartij']:""));
             $plaats = str_replace(",",".",(array_key_exists('plaats',$this->info)?$this->info['plaats']:""));
             fwrite($_handler, $tegenpartij.",");

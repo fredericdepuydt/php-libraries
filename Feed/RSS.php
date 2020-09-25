@@ -66,7 +66,7 @@ class RSS {
                         }
                     }else{
                         throw new \Exception("Unknown node in rss root node: " . $node->childNodes[0]->nodeName);
-                    }                    
+                    }
                     break;
                 case "xml-stylesheet":
                     break;
@@ -75,17 +75,17 @@ class RSS {
                     break;
             }
         }
-        
+
         /*$items = $this->document->getElementsByTagName("entry");
         echo "Starting...\n";
         foreach($items as $item) {
             $this->items[] = new RSS\Item\Atom10($item);
-        }        
+        }
         echo "Stopping...\n";*/
     }
 
     public function store(){
-        //var_dump($this->items);        
+        //var_dump($this->items);
         foreach($this->items as $item) {
             $item->store($this->db);
         }

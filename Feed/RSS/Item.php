@@ -43,11 +43,11 @@ class Item {
     }
 
     public function store($_db){
-        $sql = "INSERT INTO `items`    
+        $sql = "INSERT INTO `items`
                     (`author`, `category`, `copyright`,
                      `title`, `description`, `guid`, `lastBuildDate`,
                      `pubDate`, `managingEditor`, `link`, `comments`,
-                     `image`, `hidden`) 
+                     `image`, `hidden`)
                 VALUES  ('".$_db->escape($this->author)."',  '".$_db->escape($this->category)."',       '".$_db->escape($this->copyright)."',
                          '".$_db->escape($this->title)."',   '".$_db->escape($this->description)."',    '".$_db->escape($this->guid)."', '".$_db->escape($this->lastBuildDate)."',
                          '".$_db->escape($this->pubDate)."', '".$_db->escape($this->managingEditor)."', '".$_db->escape($this->link)."', '".$_db->escape($this->comments)."',

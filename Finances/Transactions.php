@@ -18,9 +18,9 @@ class Transactions {
         //Open the file.
         $this->transactions = array();
         $fileHandle = fopen($this->file, "r");
-        
+
         // TODO ADD CHECK FOR HANDLER
-        
+
         //Loop through the CSV rows.
         if(($row = fgetcsv($fileHandle, 0, ";")) !== FALSE){
             while (($row = fgetcsv($fileHandle, 0, ";")) !== FALSE) {

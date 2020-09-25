@@ -22,7 +22,7 @@ class REST {
         $this->parameters['intern'] = $_intern;
         if($_intern == true){
             if($_USER == null){
-                $this->USER = new USER(null, null, true); 
+                $this->USER = new USER(null, null, true);
             }else{
                 $this->USER = $_USER;
             }
@@ -46,7 +46,7 @@ class REST {
 
         // Trim request
         $request = trim($request, '/');
-        $this->request = ($request !== "" ? explode('/', $request) : []);        
+        $this->request = ($request !== "" ? explode('/', $request) : []);
     }
 
     public function extend() {
@@ -63,7 +63,7 @@ class REST {
     private function get_file($prev_path, $offset = 0) {
         // Recursive function looking through API folder and files
         $path = clone $prev_path;
-        if (count($this->request) >= 1 + $offset) {            
+        if (count($this->request) >= 1 + $offset) {
             $path->appendfolder($this->request[$offset]);
             //echo($path->full_folder().PHP_EOL);
             if (file_exists($path->full_folder())){
@@ -71,25 +71,25 @@ class REST {
                     array_shift($this->request);
                     return true;
                 }
-            }            
+            }
             $path = clone $prev_path;
             $path->file = $this->request[$offset];
-            //echo($path->full_file().PHP_EOL);          
+            //echo($path->full_file().PHP_EOL);
             if (file_exists($path->full_file())) {
                 array_shift($this->request);
                 $this->path = $path;
                 return true;
             }
-            if($offset > 0){            
+            if($offset > 0){
                 $path->file = $this->request[$offset-1];
-                //echo($path->full_file().PHP_EOL);                     
+                //echo($path->full_file().PHP_EOL);
                 if (file_exists($path->full_file())) {
                     $this->path = $path;
                     return true;
                 }
 
                 $path->file = $this->request[$offset-1] . "_" . $this->request[$offset];
-                //echo($path->full_file().PHP_EOL);        
+                //echo($path->full_file().PHP_EOL);
                 if (file_exists($path->full_file())) {
                     array_shift($this->request);
                     $this->path = $path;
@@ -98,7 +98,7 @@ class REST {
             }
         }elseif(count($this->request) == $offset && $offset > 0){
             $path->file = $this->request[$offset-1];
-            //echo($path->full_file().PHP_EOL);                     
+            //echo($path->full_file().PHP_EOL);
             if (file_exists($path->full_file())) {
                 $this->path = $path;
                 return true;
@@ -147,10 +147,10 @@ abstract class Extended_REST extends REST {
         } else {
             $this->request_method = "GET";
         }
-        
+
         // Buffer echo's
         ob_start();
-        
+
     }
 
     public function authorize() {
@@ -160,7 +160,7 @@ abstract class Extended_REST extends REST {
         } else {
             $this->HTTP = new HTTPDigestAuthExtended();
             if (!isset($this->USER)) {
-                $this->USER = new USER(null, null, true);                              
+                $this->USER = new USER(null, null, true);
             }
         }
     }
@@ -208,8 +208,8 @@ abstract class Extended_REST extends REST {
         $this->db = new DB;
     }
 
-    protected function PUSH(bool $close = TRUE) {        
-        ob_implicit_flush(true); 
+    protected function PUSH(bool $close = TRUE) {
+        ob_implicit_flush(true);
         @ob_end_flush();
         $this->FINALIZE();
         $length = ob_get_length();
@@ -284,7 +284,7 @@ abstract class Extended_REST extends REST {
         $request = $db->escape(file_get_contents('php://input'));
         $response = $db->escape(ob_get_contents());
 
-        $sql = "INSERT INTO `LOG_api` (`date`, `api`, `HTTP_method`, `HTTP_status_code`, `JSON_status_code`, `user_id`, `request`, `response`) 
+        $sql = "INSERT INTO `LOG_api` (`date`, `api`, `HTTP_method`, `HTTP_status_code`, `JSON_status_code`, `user_id`, `request`, `response`)
 						VALUES (" . $date . ",'" . $api . "','" . $HTTP_method . "'," . $HTTP_status_code . "," . $JSON_status_code . "," . $user_id . ",'" . $request . "','" . $response . "')";
         $db->query($sql, TRUE);
     }
@@ -425,7 +425,7 @@ abstract class Extended_REST extends REST {
         }
     }
 
-    //JSON related		
+    //JSON related
     public function setJSONstatusCode($statusCode, $statusBody = false) {
         if (!isset($this->jsonbody["status"]["code"])) {
             $this->jsonbody["status"]["code"] = $statusCode;

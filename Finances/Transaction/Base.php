@@ -24,7 +24,7 @@ class Base {
 
     function is_bankaccount($_var){
         return true;
-    }   
+    }
 
     function is_date($_date, $_format = null){
         switch(strtolower($_format)){

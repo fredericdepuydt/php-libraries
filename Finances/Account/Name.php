@@ -33,7 +33,7 @@ trait Name{
                     foreach($locs as $loc){
                         if($_loc != "" && preg_match("/".$loc['regex']."/", $_loc)){
                             $loc1 = $loc['replace'];
-                        }                        
+                        }
                         if(count($match) == 1 && preg_match("/".$loc['regex']."/", $match[0])){
                             $loc2 = $loc['replace'];
                         }

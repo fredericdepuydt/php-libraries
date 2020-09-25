@@ -88,7 +88,7 @@ class USER {
     }
 
     function buildUSER() {
-        $this->company_id = $this->db->select_value("SELECT `company_id` FROM `USR_users` WHERE `id` = ".$this->id." LIMIT 1", TRUE);        
+        $this->company_id = $this->db->select_value("SELECT `company_id` FROM `USR_users` WHERE `id` = ".$this->id." LIMIT 1", TRUE);
         // Get the rules for the user's role
         if (count($this->roles) > 0) {
             $this->getRolePermissions($this->roles);

@@ -18,7 +18,7 @@ trait ExtractInfo{
         $this->str = $this->row[6]; // DETAILS
         $this->src_account->iban = trim($this->row[7]); // REKENINGNUMMER
         $this->src_account->findNameByIban();
-        
+
         // ESSENTIAL CHECKS
         if(!$this->is_date($this->date,"dd/mm/yyyy")){
             throw new \Exception("Error in DATE from CSV column `VALUTADATUM`");
@@ -27,7 +27,7 @@ trait ExtractInfo{
         // HEADER REMOVING from STR
         $this->header = substr($this->str,0,63);
         $this->str = trim(substr($this->str,63));
-        
+
 
         // MET KAART
         if($this->getinfo('card') === true){
@@ -50,7 +50,7 @@ trait ExtractInfo{
         }
 
         // EUROPESE DOMICILIERING VAN
-        if($this->getinfo('domiciliering')){ 
+        if($this->getinfo('domiciliering')){
             if(substr($this->str,0,27) == "EUROPESE DOMICILIERING VAN "){
                 $this->str = trim(substr($this->str,27));
             }else{
@@ -74,7 +74,7 @@ trait ExtractInfo{
             }
         }elseif($this->getinfo('valutadatum')){
             throw new \Exception("Missing: valutadatum");
-        }        
+        }
 
         // DATUM
         $id = strrpos ($this->str, "DATUM : ");
@@ -82,13 +82,13 @@ trait ExtractInfo{
             $datum = substr($this->str, -10);
             if(strlen($this->str) - $id == 18 && $this->is_date($datum,"dd/mm/yyyy")){
                 $this->info['datum'] = $datum;
-                $this->str = trim(substr($this->str, 0, $id));                
+                $this->str = trim(substr($this->str, 0, $id));
             }else{
                 throw new \Exception("Error in DATUM");
             }
         }elseif($this->getinfo('datum')){
             throw new \Exception("Missing: datum");
-        }      
+        }
 
         // TERMINAL
         if($this->getinfo('terminal')){
@@ -113,7 +113,7 @@ trait ExtractInfo{
                     $this->info['bankreferentie'] = $bankreferentie;
                     $this->str = trim(substr($this->str, 0, $id));
                 }else{
-                    echo("Details: " . $this->str . "\n");                        
+                    echo("Details: " . $this->str . "\n");
                     throw new \Exception("Nog data beschikbaar na BANKREFERENTIE");
                 }
             }
@@ -127,7 +127,7 @@ trait ExtractInfo{
                 if(ctype_digit($uitgavenstaat)){
                     $this->info['uitgavenstaat'] = $uitgavenstaat;
                     $this->str = trim(substr($this->str, 0, $id));
-                }else{                      
+                }else{
                     throw new \Exception("Nog data beschikbaar na UITGAVENSTAAT");
                 }
             }
@@ -143,14 +143,14 @@ trait ExtractInfo{
                     $this->info['tegenpartij'] = "*VISA ". $visa . "*";
                     $this->info['plaats'] = "";
                     $this->str = trim(substr($this->str, 0, $id));
-                }else{                      
+                }else{
                     throw new \Exception("Nog data beschikbaar na VISA");
                 }
             }
         }
 
         // UITGEVOERD OP
-        $id = strrpos ($this->str, "UITGEVOERD OP ");        
+        $id = strrpos ($this->str, "UITGEVOERD OP ");
         if($id !== false){
             if(strlen($this->str) - $id == 19){
                 $this->info['uitgevoerd_op'] = substr($this->str, -5);
@@ -162,8 +162,8 @@ trait ExtractInfo{
         }elseif($this->getinfo('uitgevoerd_op')){
             throw new \Exception("Missing: uitgevoerd_op");
         }
-        
-        // MEDEDELING      
+
+        // MEDEDELING
         $id = strrpos ($this->str, "MEDEDELING : ");
         if($id !== false){
             $this->info['mededeling'] = ucfirst(trim(substr($this->str, $id + 12)));
@@ -195,7 +195,7 @@ trait ExtractInfo{
                         $this->info['via'] = ucfirst($via);
                         $this->str = trim(substr($this->str, 0, $id));
                         break;
-                    default:                        
+                    default:
                         throw new \Exception("VIA onbekend");
                 }
             }
@@ -211,7 +211,7 @@ trait ExtractInfo{
                         $this->info['tegenpartij'] = "KANTOOR " & trim($this->str,15);
                         $this->info['plaats'] = trim($this->str,15);
                         $this->str = "";
-                    }else{               
+                    }else{
                         throw new \Exception("IN onbekend");
                     }
                 }else{
@@ -219,7 +219,7 @@ trait ExtractInfo{
                 }
             }
         }
-        
+
         // REFERTE
         if($this->getinfo('referte')){
             $id = strrpos ($this->str, "REFERTE : ");
@@ -254,7 +254,7 @@ trait ExtractInfo{
                 $eur = (float)str_replace(',','.',trim(substr($this->str, $id + 5)));
                 if($this->getinfo('eur-invert')){
                         $eur = -$eur;
-                }                
+                }
                 $split = explode(",",$eur);
                 if(is_numeric($eur)){
                     if($this->amount == $eur){
@@ -276,7 +276,7 @@ trait ExtractInfo{
                     $this->str = trim(substr($this->str, 0, strlen($this->str) - 11));
                 }else{
                     throw new \Exception("Error toegevoegde datum doesn't match `Transaction->date`");
-                }                
+                }
             }else{
                 throw new \Exception("Error in 'Toegevoegde datum'");
             }
@@ -301,7 +301,7 @@ trait ExtractInfo{
                     $id = $id + 1;
                 }while(strlen($this->str)>$id && strlen($tmp) < 33 && !$this->dst_account->setIban($tmp));
 
-                if(strlen($tmp)<33){                    
+                if(strlen($tmp)<33){
                     $this->str = trim(substr($this->str, 0, strlen($this->str) - $id));
                 }else{
                     echo("IBAN:    "  .$tmp."\n");
@@ -383,7 +383,7 @@ trait ExtractInfo{
             /*}else{
                 unset($this->info['tegenpartij']);
                 unset($this->info['plaats']);
-            }*/  
+            }*/
         }else{
             trigger_error("Destination Account empty", E_USER_WARNING);
         }

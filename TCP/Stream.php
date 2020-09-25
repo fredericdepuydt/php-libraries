@@ -25,10 +25,10 @@ class Stream extends \Thread {
 
     private $data = "";
 
-    const BUFFER_SIZE = 2048;
+    const BUFFER_SIZE = 204800;
 
     // Constructing TCP object
-    function __construct($_socket, $_id = 0, $_verbose = false) {        
+    function __construct($_socket, $_id = 0, $_verbose = false) {
         $this->state = self::STATE_CREATED;
         $this->socket = $_socket;
         $this->setId($_id);
@@ -56,10 +56,10 @@ class Stream extends \Thread {
                 $this->id = $_id;
             }else{
                 throw new \Exception('Invalid ID number');
-            }            
+            }
         }else{
             throw new \Exception('ID number is non-numerical');
-        }        
+        }
     }
 
     public function setVerbose($_verbose){
@@ -67,7 +67,7 @@ class Stream extends \Thread {
             $this->verbose = $_verbose;
         }else{
             throw new \Exception('Verbose mode is non-boolean');
-        }        
+        }
     }
 
     public function setTimeout($_timeout){
@@ -93,13 +93,13 @@ class Stream extends \Thread {
             $this->echo("running.");
         }
         do {
-            if(($data = @socket_read($this->socket, self::BUFFER_SIZE, PHP_BINARY_READ)) != ""){                
+            if(($data = @socket_read($this->socket, self::BUFFER_SIZE, PHP_BINARY_READ)) != ""){
                 $this->data .= $data;
                 $ret = $this->process_data();
                 if($ret !== 0 && $ret === null){
                     $this->shutdown();
                     return;
-                }                
+                }
             }else{
                 switch(socket_last_error($this->socket)){
                     case 0: // Disconnected
@@ -120,6 +120,12 @@ class Stream extends \Thread {
                         }
                         $this->shutdown();
                         return;
+                    case 32: // Broken pipe
+                        if($this->verbose){
+                            $this->echo("broken pipe.");
+                        }
+                        $this->shutdown();
+                        return;
                     default:
                         throw new \Exception("Socket read failed: " . socket_strerror(socket_last_error($this->socket))." [".socket_last_error($this->socket)."]");
                         break;
@@ -135,7 +141,7 @@ class Stream extends \Thread {
     }
     public function process_abort(){
         // DOES NOTHING, NEEDS TO BE EXTENDED;
-    }    
+    }
     public function on_max_cycle(){
         // DOES NOTHING, NEEDS TO BE EXTENDED;
     }
@@ -143,7 +149,7 @@ class Stream extends \Thread {
     public function isRunning(){
         return ($this->state == self::STATE_RUNNING);
     }
-    public function getState(){        
+    public function getState(){
         return $this->state;
     }
 
@@ -166,7 +172,7 @@ class Stream extends \Thread {
                         return;
                 }
             }
-            $this->state = self::STATE_SHUTDOWN;             
+            $this->state = self::STATE_SHUTDOWN;
         }
     }
 

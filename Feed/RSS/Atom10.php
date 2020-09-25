@@ -22,7 +22,7 @@ class Atom10 extends Item {
                         }
                     /*}else{
                         throw new \Exception("Title has no type attribute");
-                    }*/               
+                    }*/
                     break;
                 case "id": // ID
                     //if(ctype_digit($element[0])){
@@ -49,7 +49,7 @@ class Atom10 extends Item {
                             throw new \Exception("Summary type unknown: ".$type);
                             break;
                     }
-                    break;   
+                    break;
                 case "nstag":
                     //$this->nstag = new Tag($node);
                     break;
@@ -74,10 +74,10 @@ class Atom10 extends Item {
                             throw new \Exception("Unknown link type: ". $this->rel);
                             break;
                     }
-                    //$this->link[] = new Link($node);           
+                    //$this->link[] = new Link($node);
                     break;
                 default:
-                    throw new \Exception("Unknown entry element: ".$node->nodeName);  
+                    throw new \Exception("Unknown entry element: ".$node->nodeName);
                     break;
             }
         }

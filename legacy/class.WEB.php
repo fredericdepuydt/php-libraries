@@ -21,20 +21,20 @@ class WEB {
     function __construct($_intern = false, $_request = null, $_USER = null) {
         $this->HTTP = new HTTP();
         $this->parameters['intern'] = $_intern;
-        
-        
+
+
         // TODO REPLACE SESSION
         session_start();
         // Getting stored USER
         if(isset($_SESSION["USER"])){
             $this->USER = $_SESSION["USER"];
         }else{
-            $this->USER = new USER(null, null, true); 
+            $this->USER = new USER(null, null, true);
         }
 
         if($_intern == true || !isset($this->USER)){
             if($_USER == null){
-                $this->USER = new USER(null, null, true); 
+                $this->USER = new USER(null, null, true);
             }else{
                 $this->USER = $_USER;
             }
@@ -60,7 +60,7 @@ class WEB {
 
         // Trim request
         $request = trim($request, '/');
-        $this->request = ($request !== "" ? explode('/', $request) : []);   
+        $this->request = ($request !== "" ? explode('/', $request) : []);
     }
 
     public function extend() {
@@ -86,20 +86,20 @@ class WEB {
                 }
             }
             $path = clone $prev_path;
-            $path->file = $this->request[$offset];                  
+            $path->file = $this->request[$offset];
             if (file_exists($path->full_file())) {
                 array_shift($this->request);
                 $this->path = $path;
                 return true;
             }
-            if($offset > 0){            
-                $path->file = $this->request[$offset-1];                     
+            if($offset > 0){
+                $path->file = $this->request[$offset-1];
                 if (file_exists($path->full_file())) {
                     $this->path = $path;
                     return true;
                 }
 
-                $path->file = $this->request[$offset-1] . "_" . $this->request[$offset];           
+                $path->file = $this->request[$offset-1] . "_" . $this->request[$offset];
                 if (file_exists($path->full_file())) {
                     array_shift($this->request);
                     $this->path = $path;
@@ -107,7 +107,7 @@ class WEB {
                 }
             }
         }elseif(count($this->request) == $offset && $offset > 0){
-            $path->file = $this->request[$offset-1];                     
+            $path->file = $this->request[$offset-1];
             if (file_exists($path->full_file())) {
                 $this->path = $path;
                 return true;
@@ -157,21 +157,21 @@ abstract class Extended_WEB extends WEB {
         } else {
             $this->request_method = "GET";
         }
-        
+
         // Buffer echo's
         ob_start();
-        
+
     }
 
     public function authorize() {
         $this->HTTP = new HTTPDigestAuthExtended();
         if (!isset($this->USER)){
-            if(!$this->parameters['intern']) {             
+            if(!$this->parameters['intern']) {
                 $this->USER = $this->HTTP->authenticate();
             }else{
-                $this->USER = new USER(null, null, true); 
+                $this->USER = new USER(null, null, true);
             }
-        } 
+        }
     }
 
     public function extend() {
@@ -187,8 +187,8 @@ abstract class Extended_WEB extends WEB {
         require 'include/web/header.php';
         $this->STYLE();
         echo("</head>");
-        echo("<body>");        
-        
+        echo("<body>");
+
         if(!isset($this->menu) || $this->menu == true){
             echo('<div class="demo-layout mdl-layout mdl-js-layout mdl-layout--fixed-drawer">');
             require 'include/web/body/menu.php';
@@ -208,19 +208,19 @@ abstract class Extended_WEB extends WEB {
     }
 
     protected function INITIALIZE() {
-        
+
     }
 
     protected function STYLE() {
-        
+
     }
 
     protected function TITLE() {
-        
+
     }
 
     protected function CONTENT() {
-        
+
     }
 
     public function SQL_QUERY(string $sql) {
@@ -307,7 +307,7 @@ abstract class Extended_WEB extends WEB {
         }
     }
 
-    //JSON related		
+    //JSON related
     public function setJSONstatusCode($statusCode, $statusBody = false) {
         if (!isset($this->jsonbody["status"]["code"])) {
             $this->jsonbody["status"]["code"] = $statusCode;

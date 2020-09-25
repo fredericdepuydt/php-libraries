@@ -8,7 +8,7 @@ class RSS2 extends Item {
     function __construct($_doc){
         foreach($_doc->childNodes as $item) {
             //echo(" ". $item->localName ."\n");
-            
+
             switch(strtolower($item->localName)){
                 case "title": // TITLE
                     $this->title = $item->nodeValue;
@@ -25,25 +25,25 @@ class RSS2 extends Item {
                     $this->lastBuildDate = $tmpDate->format("Y-m-d H:i:s");
                     break;
                 case "description":
-                    $this->description = $item->nodeValue;                          
+                    $this->description = $item->nodeValue;
                     break;
                 case "author":
-                    $this->author = $item->nodeValue;           
-                    break;   
+                    $this->author = $item->nodeValue;
+                    break;
                 case "category":
-                    $this->category = $item->nodeValue;                          
+                    $this->category = $item->nodeValue;
                     break;
                 case "comments":
-                    $this->comments = $item->nodeValue;                          
-                    break;      
+                    $this->comments = $item->nodeValue;
+                    break;
                 case "link":
-                    $this->link = $item->nodeValue;         
+                    $this->link = $item->nodeValue;
                     break;
                 default:
-                    throw new \Exception("Unknown entry element: ".$item->nodeName);  
+                    throw new \Exception("Unknown entry element: ".$item->nodeName);
                     break;
             }
-        }        
+        }
         return $this;
     }
 }

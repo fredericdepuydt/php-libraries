@@ -24,7 +24,7 @@ class Socket {
     private $stream_timeout;
 
     private $next_id = 0;
-    
+
     private $streamclass;
 
     public const STATE_CREATED = 1;
@@ -33,7 +33,7 @@ class Socket {
     public const STATE_SHUTDOWN = 4;
     public const STATE_CLOSED = 5;
 
-    
+
     public const DEFAULT_TIMEOUT = 0;
     public const DEFAULT_STREAM_TIMEOUT = 60;
 
@@ -64,7 +64,7 @@ class Socket {
             $this->close();
         }
     }
-    
+
     public function setAddress($_address){
         $this->address = $_address;
     }
@@ -75,10 +75,10 @@ class Socket {
                 $this->port = $_port;
             }else{
                 throw new \Exception('Invalid port number');
-            }            
+            }
         }else{
             throw new \Exception('Port number is non-numerical');
-        }        
+        }
     }
 
     public function setVerbose($_verbose){
@@ -123,7 +123,7 @@ class Socket {
         $this->streamclass = $class;
     }
 
-    public function getState(){        
+    public function getState(){
         return $this->state;
     }
 
@@ -134,11 +134,11 @@ class Socket {
         $this->listen();
     }
 
-    public function create(){       
+    public function create(){
         if(($this->socket = @socket_create(AF_INET, SOCK_STREAM, SOL_TCP)) === false){
             throw new \Exception('Socket create failed: ' . socket_strerror(socket_last_error($this->socket))." [".socket_last_error($this->socket)."]");
         }else{
-            $this->state = self::STATE_CREATED;            
+            $this->state = self::STATE_CREATED;
             if($this->verbose){
                 echo("Socket created.\n");
                 flush();
@@ -147,7 +147,7 @@ class Socket {
         }
     }
 
-    public function bind(){        
+    public function bind(){
         if(socket_bind($this->socket, $this->address, $this->port) === false){
             throw new \Exception('Socket bind failed: ' . socket_strerror(socket_last_error($this->socket))." [".socket_last_error($this->socket)."]");
         }else{
@@ -198,9 +198,9 @@ class Socket {
     }
 
     public function accept(){
-        if(($socket = @socket_accept($this->socket)) !== false){          
+        if(($socket = @socket_accept($this->socket)) !== false){
             $this->next_id++;
-            $new_stream = new $this->streamclass($socket, $this->next_id, $this->verbose);            
+            $new_stream = new $this->streamclass($socket, $this->next_id, $this->verbose);
             $tot_streams = 0;
             foreach($this->streams as $key=>$stream){
                 if($stream != NULL && $stream->isRunning()){
@@ -229,9 +229,9 @@ class Socket {
             return true;
         }else{
             switch(socket_last_error($this->socket)){
-                case 0:                    
+                case 0:
                     $this->shutdown();
-                    return false;  
+                    return false;
                 default:
                     throw new \Exception('Socket accept failed: ' . socket_strerror(socket_last_error($this->socket))." [".socket_last_error($this->socket)."]");
             }
@@ -253,7 +253,7 @@ class Socket {
                 echo("Socket shutdown.\n");
                 flush();
             }
-            $this->state = self::STATE_SHUTDOWN;             
+            $this->state = self::STATE_SHUTDOWN;
         }
     }
 
@@ -262,16 +262,16 @@ class Socket {
             throw new \Exception('Socket close failed (false): ' . socket_strerror(socket_last_error($this->socket))." [".socket_last_error($this->socket)."]");
         }elseif($this->socket === true){
             throw new \Exception('Socket close failed (true): ' . socket_strerror(socket_last_error($this->socket))." [".socket_last_error($this->socket)."]");
-        }else{          
+        }else{
             if(@socket_close($this->socket) === false){
                 throw new \Exception('Socket close failed: ' . socket_strerror(socket_last_error($this->socket))." [".socket_last_error($this->socket)."]");
             }
             if($this->verbose){
                 echo("Socket closed.\n");
                 flush();
-            }  
+            }
             $this->socket = NULL;
-            $this->state = self::STATE_CLOSED;            
+            $this->state = self::STATE_CLOSED;
         }
     }
 }

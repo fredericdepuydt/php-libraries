@@ -26,7 +26,7 @@ class HTTP {
                     header($key . ": " . $value);
                 } else {
                     header($key);
-                }               
+                }
             }
         }
         if ($die) {

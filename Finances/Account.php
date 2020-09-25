@@ -16,7 +16,6 @@ class Account {
     }
 
     use Account\Iban;
-    use Account\Name;    
+    use Account\Name;
 }
 
-    
