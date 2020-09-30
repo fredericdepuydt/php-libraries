@@ -15,7 +15,7 @@ class User {
     private $db;
 
     function __construct($user = null, $pass = null, $guestAllowed = false) {
-        $this->db = new \DB\MySQL();
+        $this->db = new \Database\MySQL();
         if (isset($user)) {
             if (isset($pass)) {
                 $this->name = $user;

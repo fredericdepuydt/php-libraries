@@ -16,7 +16,7 @@ class RSS {
 
     public function __construct(){
         $this->document = new \DOMDocument();
-        $this->db = new \DB\MySQL();
+        $this->db = new \Database\MySQL();
         $sql = "INSERT INTO `logs`(`time`, `ip`) VALUES ('".date('Y-m-d H:i:s')."','".$_SERVER['REMOTE_ADDR']."');";
         $this->db->query($sql);
     }

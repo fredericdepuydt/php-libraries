@@ -102,7 +102,7 @@ class MySQL {
                                               $this->db_pass,
                                               $this->db_name));
         }else{
-            warning("Connection was already established!");
+            \warning("Connection was already established!");
         }
         // If connection was not successful, handle the error
         if ($this->connection === false || $this->connection->connect_errno) {
@@ -117,7 +117,7 @@ class MySQL {
     public function reconnect() {
         // Try and reconnect to the database
         if (!isset($this->connection)) {
-            warning("Connection had to be reestablished!");
+            \warning("Connection had to be reestablished!");
             $this->connection = @(new \mysqli($this->db_host.":".$this->db_port,
                                               $this->db_user,
                                               $this->db_pass,
