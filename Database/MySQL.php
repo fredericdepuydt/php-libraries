@@ -25,13 +25,13 @@ class MySQL {
         switch($_method){
             case self::CONN_ENV:
                 self::$method = self::CONN_ENV;
-                break; 
+                break;
             case self::CONN_FILE:
                 self::$method = self::CONN_FILE;
-                break; 
+                break;
             case self::CONN_VARS:
                 self::$method = self::CONN_VARS;
-                break; 
+                break;
             default:
                 throw new \InvalidArgumentException("MySQL constructor method unknown: ". $_method);
                 break;
@@ -41,7 +41,7 @@ class MySQL {
     // Constructing DB and gathering config data
     function __construct(){
         switch(self::$method){
-            case self::CONN_ENV: // enviroment variables  
+            case self::CONN_ENV: // enviroment variables
                 $this->db_host = (isset($_ENV['DB_HOST'])?$_ENV['DB_HOST']:"127.0.0.1");
                 $this->db_port = (isset($_ENV['DB_PORT'])?$_ENV['DB_PORT']:3306);
                 $this->db_user = (isset($_ENV['DB_USER'])?$_ENV['DB_USER']:"");
@@ -51,11 +51,11 @@ class MySQL {
                     trigger_error("MySQL constructor with `environment variables` needs no arguments", E_USER_WARNING);
                 }
                 break;
-            case self::CONN_FILE: // file variables                
+            case self::CONN_FILE: // file variables
                 if(func_num_args()==1){
                     $file = func_get_args()[1];
                 }else{
-                    $file = "include/db_config.ini";                    
+                    $file = "include/db_config.ini";
                 }
                 $ini = parse_ini_file($file, true);
                 if($ini !== false){
@@ -83,7 +83,7 @@ class MySQL {
                 }
             default:
                 throw new \InvalidArgumentException("MySQL constructor method unknown: ". $method);
-                break; 
+                break;
         }
     }
 
@@ -97,6 +97,27 @@ class MySQL {
     public function connect() {
         // Try and connect to the database
         if (!isset($this->connection)) {
+            $this->connection = @(new \mysqli($this->db_host.":".$this->db_port,
+                                              $this->db_user,
+                                              $this->db_pass,
+                                              $this->db_name));
+        }else{
+            warning("Connection was already established!");
+        }
+        // If connection was not successful, handle the error
+        if ($this->connection === false || $this->connection->connect_errno) {
+            // Handle error - notify administrator, log to a file, show an error screen, etc.
+            throw new MySQLException($this->connection->connect_error,$this->connection->connect_errno);
+        }
+        return true;
+    }
+
+    // Reconnect to the database
+    // @return bool false on failure / mysqli MySQLi object instance on success
+    public function reconnect() {
+        // Try and reconnect to the database
+        if (!isset($this->connection)) {
+            warning("Connection had to be reestablished!");
             $this->connection = @(new \mysqli($this->db_host.":".$this->db_port,
                                               $this->db_user,
                                               $this->db_pass,
@@ -124,13 +145,13 @@ class MySQL {
             return true;
         }
     }
-    
+
     // Query the database
     // @param $query The query string
     // @return mixed The result of the mysqli::query() function
     public function query($query, $suppress = false) {
-        // Connect to the database
-        $this->connect();
+        // Reconnect to the database
+        $this->reconnect();
         // Query the database
         $result = $this->connection->query($query);
         if ($result === false && !$suppress) {
@@ -144,8 +165,8 @@ class MySQL {
     // @param $query The query string
     // @return mixed The result of the mysqli::query() function
     public function multi_query($query, $suppress = false) {
-        // Connect to the database
-        $this->connect();
+        // Reconnect to the database
+        $this->reconnect();
         // Query the database
         $result = $this->connection->multi_query($query);
         if ($result === false && !$suppress) {
@@ -156,8 +177,8 @@ class MySQL {
     }
     public function store_result($suppress = false) {
         try {
-            // Connect to the database
-            $this->connect();
+            // Reconnect to the database
+            $this->reconnect();
             // Query the database
             $result = $this->connection->store_result();
             if ($result === false && !$suppress) {
@@ -170,7 +191,8 @@ class MySQL {
         }
     }
     public function store_result_row($suppress = false) {
-        // Connect to the database
+        // Reconnect to the database
+        $this->reconnect();
         try {
             $result = $this->store_result();
             // Catch errors
@@ -207,8 +229,8 @@ class MySQL {
     }
 
     public function next_result($suppress = false) {
-        // Connect to the database
-        $this->connect();
+        // Reconnect to the database
+        $this->reconnect();
         // Query the database
         $result = $this->connection->next_result();
         if ($result === false && !$suppress) {
@@ -217,10 +239,10 @@ class MySQL {
             return $result;
         }
     }
-    
+
     public function more_results($suppress = false) {
-        // Connect to the database
-        $this->connect();
+        // Reconnect to the database
+        $this->reconnect();
         // Query the database
         $result = $this->connection->more_results();
         if ($result === false && $suppress) {
@@ -302,13 +324,15 @@ class MySQL {
     // Fetch the last error from the database
     // @return string Database error message
     public function error() {
-        $this->connect();
+        // Reconnect to the database
+        $this->reconnect();
         return $this->connection->error;
     }
     // Fetch the last error from the database
     // @return string Database error message
     public function error_text($sql = false) {
-        $this->connect();
+        // Reconnect to the database
+        $this->reconnect();
         $error = $this->connection->error;
         if ($error != "") {
             $error = "SQL Error: " . $error;
@@ -325,14 +349,15 @@ class MySQL {
     // @param string $value The value to be quoted and escaped
     // @return string The quoted and escaped string
     public function escape($value) {
-        $this->connect();
+        // Reconnect to the database
+        $this->reconnect();
+        // Escaping the value
         return $this->connection->real_escape_string($value);
     }
     // Quote and escape value for use in a database query
     // @param string $value The value to be quoted and escaped
     // @return string The quoted and escaped string
-    public function quote($value) {
-        $this->connect();
-        return "'" . $this->connection->real_escape_string($value) . "'";
+    public function quote($value, $quotes = "'") {
+        return $quotes . $this->escape($value) . $quotes;
     }
 }
