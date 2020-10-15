@@ -107,7 +107,7 @@ class MySQL {
         // If connection was not successful, handle the error
         if ($this->connection === false || $this->connection->connect_errno) {
             // Handle error - notify administrator, log to a file, show an error screen, etc.
-            throw new \Database\MySQLException($this->connection->connect_error,$this->connection->connect_errno);
+            throw new MySQLException($this->connection->connect_error,$this->connection->connect_errno);
         }
         return true;
     }
@@ -126,7 +126,7 @@ class MySQL {
         // If connection was not successful, handle the error
         if ($this->connection === false || $this->connection->connect_errno) {
             // Handle error - notify administrator, log to a file, show an error screen, etc.
-            throw new \Database\MySQLException($this->connection->connect_error,$this->connection->connect_errno);
+            throw new MySQLException($this->connection->connect_error,$this->connection->connect_errno);
         }
         return true;
     }
@@ -155,9 +155,14 @@ class MySQL {
         // Reconnect to the database
         $this->reconnect();
         // Query the database
-        $result = $this->connection->query($query);        
+        $result = $this->connection->query($query);
+        
         if ($result === false && !$suppress) {
-            throw new \Database\MySQLException($this->connection->error,$this->connection->errno);
+            if($this->connection->errno == 1064){
+                throw new MySQLException($this->connection->error . " (Full SQL Statement: *** ". $sql ." ***)", $this->connection->errno);
+            }else{
+                throw new MySQLException($this->connection->error, $this->connection->errno);
+            }
         } else {
             return $result;
         }
@@ -171,9 +176,48 @@ class MySQL {
         // Reconnect to the database
         $this->reconnect();
         // Query the database
-        $result = $this->connection->multi_query($query);
+        $result = $this->connection->multi_query($query);        
         if ($result === false && !$suppress) {
-            throw new \Database\MySQLException($this->connection->error,$this->connection->errno);
+            throw new MySQLException($this->connection->error,$this->connection->errno);
+        } else {
+            return $result;
+        }
+    }
+
+    public function multi_select($query, $suppress = false) {
+        $result = $this->multi_query($query, $suppress);
+        if ($result === false) {
+            if ($suppress) {
+                return false;
+            } else {
+                throw new MySQLException($this->connection->error,$this->connection->errno);
+            }            
+        } else {
+            while($this->more_results()){
+                $this->next_result();
+            }
+            $result = $this->store_result();
+            if (!$suppress && $result->num_rows == 0) {
+                $result->free();
+                unset($result);
+                throw new MySQLException("Result doesn't consist of any row", MySQLException::ER_TOO_FEW_ROWS);
+            } else {
+                $rows = [];
+                while ($row = $result->fetch_assoc()) {
+                    $rows[] = $row;
+                    unset($row);
+                }
+                $result->free();
+                unset($result);
+                return $rows;
+            }
+        }
+
+        $this->reconnect();
+        // Query the database
+        $result = $this->connection->multi_query($query);        
+        if ($result === false && !$suppress) {
+            throw new MySQLException($this->connection->error,$this->connection->errno);
         } else {
             return $result;
         }
@@ -185,34 +229,33 @@ class MySQL {
             // Query the database
             $result = $this->connection->store_result();
             if ($result === false && !$suppress) {
-                throw new \Database\MySQLException($this->connection->error,$this->connection->errno);
+                throw new MySQLException($this->connection->error,$this->connection->errno);
             } else {
                 return $result;
             }
         } catch (\Exception $e) {
-            throw new \Database\MySQLException($this->connection->error,$this->connection->errno);
+            throw new MySQLException("Store result error: ".$this->connection->error,$this->connection->errno);
         }
     }
     public function store_result_row($suppress = false) {
-        // Reconnect to the database
-        $this->reconnect();
-        try {
-            $result = $this->store_result();
-            // Catch errors
-            if ($result->num_rows != 1) {
-                if ($suppress) {
-                    return null;
+        
+        $result = $this->store_result();
+        // Catch errors
+        if ($result->num_rows != 1) {
+            if ($suppress) {
+                return null;
+            } else {
+                if ($result->num_rows == 0) {
+                    throw new MySQLException("Result doesn't consist of any row", MySQLException::ER_TOO_FEW_ROWS);
                 } else {
-                    if ($result->num_rows == 0) {
-                        throw new \Database\MySQLException("Result doesn't consist of any row", \Database\MySQLException::ER_TOO_FEW_ROWS);
-                    } else {
-                        throw new \Database\MySQLException("Result consisted of more than one row", \Database\MySQLException::ER_TOO_MANY_ROWS);
-                    }
+                    throw new MySQLException("Result consisted of more than one row", MySQLException::ER_TOO_MANY_ROWS);
                 }
             }
+        }
+        try{
             return $result->fetch_assoc();
         } catch (\Exception $e) {
-            throw new \Database\MySQLException($this->connection->error,$this->connection->errno);
+            throw new MySQLException("Fetch assoc error: ".$this->connection->error,$this->connection->errno);
         }
     }
     public function store_result_value($suppress = false) {
@@ -222,9 +265,9 @@ class MySQL {
                 return null;
             } else {
                 if (count($result) == 0) {
-                    throw new \Database\MySQLException("Too few columns", \Database\MySQLException::ER_TOO_FEW_FIELDS);
+                    throw new MySQLException("Too few columns", MySQLException::ER_TOO_FEW_FIELDS);
                 } else {
-                    throw new \Database\MySQLException("Too many columns", \Database\MySQLException::ER_TOO_MANY_FIELDS);
+                    throw new MySQLException("Too many columns", MySQLException::ER_TOO_MANY_FIELDS);
                 }
             }
         }
@@ -237,7 +280,7 @@ class MySQL {
         // Query the database
         $result = $this->connection->next_result();
         if ($result === false && !$suppress) {
-            throw new \Database\MySQLException($this->connection->error,$this->connection->errno);
+            throw new MySQLException($this->connection->error,$this->connection->errno);
         } else {
             return $result;
         }
@@ -249,7 +292,7 @@ class MySQL {
         // Query the database
         $result = $this->connection->more_results();
         if ($result === false && $suppress) {
-            throw new \Database\MySQLException($this->connection->error,$this->connection->errno);
+            throw new MySQLException($this->connection->error,$this->connection->errno);
         } else {
             return $result;
         }
@@ -265,13 +308,13 @@ class MySQL {
             if ($suppress) {
                 return false;
             } else {
-                throw new \Database\MySQLException($this->connection->error,$this->connection->errno);
+                throw new MySQLException($this->connection->error,$this->connection->errno);
             }
         } else {
             if (!$suppress && $result->num_rows == 0) {
                 $result->free();
                 unset($result);
-                throw new \Database\MySQLException("Result doesn't consist of any row", \Database\MySQLException::ER_TOO_FEW_ROWS);
+                throw new MySQLException("Result doesn't consist of any row", MySQLException::ER_TOO_FEW_ROWS);
             } else {
                 $rows = [];
                 while ($row = $result->fetch_assoc()) {
@@ -294,9 +337,9 @@ class MySQL {
                 return null;
             } else {
                 if (count($result) == 0) {
-                    throw new \Database\MySQLException("Result doesn't consist of any row", \Database\MySQLException::ER_TOO_FEW_ROWS);
+                    throw new MySQLException("Result doesn't consist of any row", MySQLException::ER_TOO_FEW_ROWS);
                 } else {
-                    throw new \Database\MySQLException("Result consisted of more than one row", \Database\MySQLException::ER_TOO_MANY_ROWS);
+                    throw new MySQLException("Result consisted of more than one row", MySQLException::ER_TOO_MANY_ROWS);
                 }
             }
         }
@@ -312,9 +355,9 @@ class MySQL {
                 return null;
             } else {
                 if (count($result) == 0) {
-                    throw new \Database\MySQLException("Too few columns", \Database\MySQLException::ER_TOO_FEW_FIELDS);
+                    throw new MySQLException("Too few columns", MySQLException::ER_TOO_FEW_FIELDS);
                 } else {
-                    throw new \Database\MySQLException("Too many columns", \Database\MySQLException::ER_TOO_MANY_FIELDS);
+                    throw new MySQLException("Too many columns", MySQLException::ER_TOO_MANY_FIELDS);
                 }
             }
         }
@@ -371,4 +414,12 @@ class MySQL {
     public function quote($value, $quotes = "'") {
         return $quotes . $this->escape($value) . $quotes;
     }
+}
+
+class MySQLException extends \Exception{
+    const ER_TOO_MANY_FIELDS = 1117;
+    const ER_TOO_MANY_ROWS = 1172;
+    const ER_TOO_FEW_FIELDS = 3117; // Custom created errno
+    const ER_TOO_FEW_ROWS = 3172; // Custom created errno
+    const ER_DUP_ENTRY = 1062;
 }

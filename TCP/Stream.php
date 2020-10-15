@@ -38,7 +38,7 @@ class Stream extends \Thread {
         try{
             $this->process_init();
         }catch(\Exception $e){            
-            $this->error("Unknown error occured during 'process_init' function: ".$e->getMessage());
+            $this->error("Unknown error occured during 'process_init' function: ".$e->getMessage() . " (Error code: " . $e->getCode().")");
         }
         if($this->verbose){
             $this->echo("constructed.");
@@ -103,7 +103,7 @@ class Stream extends \Thread {
                 try{
                     $ret = $this->process_data();
                 }catch(\Exception $e){
-                    $this->error("Unknown error occured during 'process_data' function: ".$e->getMessage());
+                    $this->error("Unknown error occured during 'process_data' function: ".$e->getMessage() . " (Error code: " . $e->getCode().")");
                     $ret = 1;
                 }
                 if($ret !== 0 && $ret === null){
@@ -167,7 +167,7 @@ class Stream extends \Thread {
         try{
             $this->process_abort();
         }catch(\Exception $e){            
-            $this->error("Unknown error occured during 'process_abort' function: ".$e->getMessage());
+            $this->error("Unknown error occured during 'process_abort' function: ".$e->getMessage() . " (Error code: " . $e->getCode().")");
         }
         if($this->socket === false){
             throw new \Exception('Socket shutdown failed (false): ' . socket_strerror(socket_last_error($this->socket))." [".socket_last_error($this->socket)."]");
