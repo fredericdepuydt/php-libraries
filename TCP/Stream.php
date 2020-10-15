@@ -35,6 +35,11 @@ class Stream extends \Thread {
         $this->setVerbose($_verbose);
         $this->setTimeout(self::DEFAULT_TIMEOUT);
         $this->process_init();
+        try{
+            $this->process_init();
+        }catch(\Exception $e){            
+            $this->error("Unknown error occured during 'process_init' function: ".$e->getMessage());
+        }
         if($this->verbose){
             $this->echo("constructed.");
         }
@@ -95,7 +100,12 @@ class Stream extends \Thread {
         do {
             if(($data = @socket_read($this->socket, self::BUFFER_SIZE, PHP_BINARY_READ)) != ""){
                 $this->data .= $data;
-                $ret = $this->process_data();
+                try{
+                    $ret = $this->process_data();
+                }catch(\Exception $e){
+                    $this->error("Unknown error occured during 'process_data' function: ".$e->getMessage());
+                    $ret = 1;
+                }
                 if($ret !== 0 && $ret === null){
                     $this->shutdown();
                     return;
@@ -154,7 +164,11 @@ class Stream extends \Thread {
     }
 
     public function shutdown(){
-        $this->process_abort();
+        try{
+            $this->process_abort();
+        }catch(\Exception $e){            
+            $this->error("Unknown error occured during 'process_abort' function: ".$e->getMessage());
+        }
         if($this->socket === false){
             throw new \Exception('Socket shutdown failed (false): ' . socket_strerror(socket_last_error($this->socket))." [".socket_last_error($this->socket)."]");
         }elseif($this->socket === true){
@@ -182,7 +196,7 @@ class Stream extends \Thread {
     }
 
     public function error(String $text){
-        $this->echo( "\e[31ERROR\e[0m: ". $text);
+        $this->echo( "\e[31mERROR\e[0m: ". $text);
     }
 
     public function warning(String $text){
