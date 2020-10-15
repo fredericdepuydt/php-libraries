@@ -9,56 +9,106 @@ trait Name{
     private static $db;
 
     public function initDB(){
-        self::$db = new \DB\MySQL($_ENV['DB_HOST'].":".$_ENV['DB_PORT'],$_ENV['DB_USERNAME'],$_ENV['DB_PASSWORD'],$_ENV['DB_DATABASE']);
+        self::$db = new \Database\MySQL();
+        self::$db->connect();
     }
 
-    public function nameInParser($_name, $_loc){
+    public function nameInParser($_name, $_location){
+        $_name = self::$db->escape(trim($_name));
+        $_location = self::$db->escape(trim($_location));
+        
         if(isset($this->name)){
             return true;
         }
-        $sql = "SELECT `name`, `location` FROM `parser_account_list` WHERE `match` = '" . self::$db->escape(trim($_name . " " . $_loc)) ."';";
+
+        $sql = "SELECT `n`.`name`
+                FROM `parser_account_names` as `n`
+                INNER JOIN `parser_account_name_matches` as `nm`
+                ON `n`.`id` = `nm`.`name_id`
+                WHERE `nm`.`match` = '".$_name."'
+                AND `nm`.`approved` = 1;";
         try{
-            $row = self::$db->select_row($sql);
-            $this->name = $row['name'];
-            $this->location = $row['location'];
-            return true;
-        }catch(\Exception $e){
-            $sql = "SELECT `regex`, `replace` FROM `parser_account_name_regex`;";
-            $names = self::$db->select($sql);
-            foreach($names as $name){
-                if($match = preg_match("/".$name['regex']."/", $_name)){
-                    $this->name = $name['replace'];
-                    $sql = "SELECT `regex`, `replace` FROM `parser_account_loc_regex`;";
-                    $locs = self::$db->select($sql);
-                    foreach($locs as $loc){
-                        if($_loc != "" && preg_match("/".$loc['regex']."/", $_loc)){
-                            $loc1 = $loc['replace'];
-                        }
-                        if(count($match) == 1 && preg_match("/".$loc['regex']."/", $match[0])){
-                            $loc2 = $loc['replace'];
-                        }
-                        if(isset($loc1) || isset($loc2)){
-                            if(isset($loc1) && isset($loc2)){
-                                if($loc1 == $loc2){
-                                    $this->location = $loc1;
-                                }else{
-                                    throw new \Exception("Multiple locations: ".$loc1." & ".$loc2);
-                                }
-                            }elseif(isset($loc1)){
-                                $this->location = $loc1;
-                            }else{
-                                $this->location = $loc2;
-                            }
-                            break;
+            $this->name = self::$db->select_value($sql);            
+        }catch(\Database\MySQLException $e){     
+            if ($e->getCode() == \Database\MySQLException::ER_TOO_FEW_ROWS){
+                // Name not yet present in MATCH list
+                $sql = "SELECT `id`, `name`, `regex`
+                        FROM `parser_account_names`
+                        WHERE `regex` != '';";
+                $names = self::$db->select($sql);
+                $matches = [];
+                foreach($names as $name){
+                    if(preg_match("/".$name['regex']."/", $_name)){
+                        array_push($matches, $name);
+                    }
+                }
+                $count = count($matches);
+                if($count == 1) {
+                        $this->name = $name['name'];
+                        $sql = "INSERT INTO `parser_account_name_matches`
+                                (`name_id`, `match`, `approved`) VALUES (".$name['id'].",'".$_name."', 1);";
+                        self::$db->query($sql);
+                }else{
+                    if($count == 0){                  
+                        // No MATCHES
+                        echo("Name: ".$_name . "\n");
+                        return true;
+                    }else{
+                        // TO MUCH MATCHES !! ERROR !!
+                        return false;
+                    }
+                }
+            }else{
+                throw($e);
+            }
+        }
+        // NAME WAS FOUND, now connect the location
+        if($_location != ""){
+
+            $sql = "SELECT `l`.`location`
+                    FROM `parser_account_locations` as `l`
+                    INNER JOIN `parser_account_location_matches` as `lm`
+                    ON `l`.`id` = `lm`.`location_id`
+                    WHERE `lm`.`match` = '".$_location."'
+                    AND `lm`.`approved` = 1;";    
+            try{
+                $this->loc = self::$db->select_value($sql);            
+            }catch(\Database\MySQLException $e){     
+                if ($e->getCode() == \Database\MySQLException::ER_TOO_FEW_ROWS){
+                    // Location not yet present in MATCH list
+                    $sql = "SELECT `id`, `location`, `regex`
+                            FROM `parser_account_locations`
+                            WHERE `regex` != '';";
+                    $locations = self::$db->select($sql);
+                    $matches = [];
+                    foreach($locations as $location){
+                        if(preg_match("/".$location['regex']."/", $_location)){
+                            array_push($matches, $location);
                         }
                     }
-                    $sql = "INSERT INTO `parser_account_list` (`match`, `name`, `location`) VALUES ('".self::$db->escape(trim($_name." ".$_loc))."','".self::$db->escape(trim($this->name))."','".self::$db->escape(trim($this->location))."');";
-                    self::$db->query($sql);
-                    return true;
+                    $count = count($matches);
+                    if($count == 1) {
+                            $this->location = $location['location'];
+                            $sql = "INSERT INTO `parser_account_location_matches`
+                                    (`location_id`, `match`, `approved`) VALUES (".$location['id'].",'".$_location."', 1);";
+                            self::$db->query($sql);
+                    }else{
+                        if($count == 0){                  
+                            // No MATCHES
+                            echo("Location: " . $_location . "            Name: " . $this->name . "\n");
+                            return true;
+                        }else{
+                            // TO MUCH MATCHES !! ERROR !!
+                            return false;
+                        }
+                    }
+                }else{
+                    throw($e);
                 }
             }
         }
-        return false;
+        // NAME AND LOCATION WERE FOUND
+        return true;
     }
 
     public function nameInFirefly($_name){

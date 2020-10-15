@@ -54,9 +54,9 @@ class Item {
                          '".$_db->escape($this->image)."',   '".$_db->escape($this->hidden)."');";
         try{
             $_db->query($sql);
-        }catch(\DB\MySQLException $e){
+        }catch(\Database\MySQLException $e){
             switch($e->getCode()){
-                case \DB\MySQLException::ER_DUP_ENTRY:
+                case \Database\MySQLException::ER_DUP_ENTRY:
                     break;
                 default:
                     throw $e;
