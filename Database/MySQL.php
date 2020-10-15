@@ -102,7 +102,7 @@ class MySQL {
                                               $this->db_pass,
                                               $this->db_name));
         }else{
-            warning("Connection was already established!");
+            \trigger_error("Connection was already established!",E_USER_WARNING);
         }
         // If connection was not successful, handle the error
         if ($this->connection === false || $this->connection->connect_errno) {
@@ -117,7 +117,7 @@ class MySQL {
     public function reconnect() {
         // Try and reconnect to the database
         if (!isset($this->connection)) {
-            warning("Connection had to be reestablished!");
+            \trigger_error("Connection had to be reestablished!", E_USER_WARNING);
             $this->connection = @(new \mysqli($this->db_host.":".$this->db_port,
                                               $this->db_user,
                                               $this->db_pass,
@@ -137,7 +137,9 @@ class MySQL {
         // Try and close the database
         if(isset($this->connection)) {
             try{
-                return $this->connection->close();
+                $this->connection->close();
+                unset($this->connection);
+                return true;
             }catch(\Exception $e) {
                 return false;
             }
@@ -153,12 +155,13 @@ class MySQL {
         // Reconnect to the database
         $this->reconnect();
         // Query the database
-        $result = $this->connection->query($query);
+        $result = $this->connection->query($query);        
         if ($result === false && !$suppress) {
             throw new MySQLException($this->connection->error,$this->connection->errno);
         } else {
             return $result;
         }
+        
     }
 
     // Query the database
@@ -257,6 +260,8 @@ class MySQL {
     public function select($query, $suppress = false) {
         $result = $this->query($query, $suppress);
         if ($result === false) {
+            $result->free();
+            unset($result);
             if ($suppress) {
                 return false;
             } else {
@@ -264,12 +269,17 @@ class MySQL {
             }
         } else {
             if (!$suppress && $result->num_rows == 0) {
+                $result->free();
+                unset($result);
                 throw new MySQLException("Result doesn't consist of any row", MySQLException::ER_TOO_FEW_ROWS);
             } else {
                 $rows = [];
                 while ($row = $result->fetch_assoc()) {
                     $rows[] = $row;
+                    unset($row);
                 }
+                $result->free();
+                unset($result);
                 return $rows;
             }
         }
@@ -321,6 +331,7 @@ class MySQL {
         $result = $this->query($query);
         return ($result->num_rows == 1);
     }
+
     // Fetch the last error from the database
     // @return string Database error message
     public function error() {
